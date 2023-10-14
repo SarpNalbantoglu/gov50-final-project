@@ -12,3 +12,15 @@ output:
 ## Project thoughts
 
 I am interested in exploring data related to COVID-19 and its effects on local and national elections in the US. I want to determine to what extent COVID-19 influenced political change in the US by comparing high- and low- impact counties, cities, and states. 
+
+## Project Proposal
+
+Have U.S. counties with high COVID-19 infection and mortality rates experienced increased turnover among their local government officials through elections? Through my final project, I aim to examine the extent to which COVID-19 has influenced local American politics. To accomplish this, I will investigate whether counties with high COVID-19 infection and mortality rates have voted out their incumbent local and state-level government officials (mayors and governors) at higher rates. I hypothesize that these counties have voted out their officials at higher rates due to citizens' association of higher infection and mortality rates with government mismanagement. An alternative hypothesis would be that COVID-19 has indirectly influenced elections due to its heterogeneous impact on certain communities and related excess death rates. My sample is comprised of mayoral and gubernatorial election results from 2009 to 2023. My unit of analysis is a Mayoral Seat (R-D-O) and a Gubernatorial Seat (R-D-O). My explanatory variable of interest is party affiliated vote. The variable is coded =R if the Republican party's Mayoral or Gubernatorial candidate receives more than 50% of the vote, coded =D if the Democratic party's Mayoral or Gubernatorial candidate receives more than 50% of the vote, and coded =O if an other party's Mayoral or Gubernatorial candidate receives more than 50% of the vote. My outcome variable of interest is the post-COVID turnover score, which would be calculated as the change in the party affiliation of the Mayoral and Gubernatorial Seats after March 2020 (the month in which COVID-19 was declared a pandemic by the World Health Organization.) For instance, if county X has an incumbent mayor from the Republican party that was elected in 2019 but votes in a new mayor from the Democratic party in 2023, that state would have a post-COVID mayoral turnover score of 1 (County X would have gone from R to D). If County X voted for the Democratic party's Governor in both the 2019 and the 2023 elections, it would have a post-COVID gubernatorial turnover score of 0. An aggregate turnover score of 2, therefore, indicates a high local political turnover rate for a county, whereas an aggregate turnover score of 0 indicates a low local political turnover rate. If I observe that a majority of counties have a medium-to-high post-COVID aggregate local political turnover rate I would have support for both my hypotheses, where I would have to do additional research into demographic data to decide which hypothesis would be accurate. If, on the other hand, I observe that a majority of counties have a low-to-medium aggregate post-COVID local political turnover rate, this would prove as evidence against my hypotheses. 
+
+
+
+
+
+
+
+
