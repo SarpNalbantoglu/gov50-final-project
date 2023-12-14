@@ -1,26 +1,354 @@
 ---
 title: "Gov 50 Final Project"
 author: "Sarp Nalbantoglu"
-description: "A Statistical Analysis of the Effects of the COVID-19 Pandemic on Politcal Leaning at the County, State, and National Levels (2020-2022) "
+description: "A Statistical Analysis of the Effects of the COVID-19 Pandemic on Politcal Leaning at the County and State Levels (2020-2022)"
 output:
   distill::distill_article:
     self_contained: false
 ---
 
+# Introduction: Research Question and Hypothesis
 
+**Have U.S. counties with high COVID-19 infection and mortality rates experienced increased turnover among their local government officials through elections?** Through my final project, I aim to examine the extent to which COVID-19 has influenced local American politics. To accomplish this, I will investigate whether counties with high COVID-19 infection and mortality rates have voted out their incumbent governors at higher rates.
 
-## Project thoughts
+I hypothesize ($\sf{H_{1}}$) that these counties have voted out their officials at higher rates due to citizens' association of higher infection and mortality rates with government mismanagement. The null alternative to this hypothesis (($\sf{H_{0}}$)) would be that there is no discernible link between the impact COVID-19 has had on counties and the turnover of local government officials at the county level. Both these hypotheses lead to interesting conclusions. Proving $\sf{H_{1}}$ would mean that COVID-19 has had a statistically significant influence on local elections in America, causing higher turnover rates among incumbent governors. On the other hand, not being able to reject $\sf{H_{0}}$ shows that COVID-19 has had no statistically significant effect on the outcome of local elections.
 
-I am interested in exploring data related to COVID-19 and its effects on local and national elections in the US. I want to determine to what extent COVID-19 influenced political change in the US by comparing high- and low- impact counties, cities, and states. 
+# Data Section
 
-## Project Proposal
+My research study is observational, employing the "before-and-after" design that takes into account data collected of the treatment group, U.S. counties, before and after treatment, the COVID-19 pandemic. My data is comprised of gubernatorial election results from 2000 to 2023. My unit of analysis is a Gubernatorial Seat (R-D-O). My explanatory variable of interest is party affiliated vote. The variable is coded =R if the Republican party's Gubernatorial candidate receives more than 50% of the vote, coded =D if the Democratic party's Gubernatorial candidate receives more than 50% of the vote, and coded =O if an other party's Gubernatorial candidate receives more than 50% of the vote. My outcome variable of interest is the post-COVID turnover score, which I calculate as the change in the party affiliation of Gubernatorial Seats after March 2020 (the month in which COVID-19 was declared a pandemic by the World Health Organization.) For instance, if County X has an incumbent governor from the Republican party that was elected in 2019 but votes in a new governor from the Democratic party in 2023, that state would have a post-COVID turnover score of 1 (County X would have gone from R to D). If County X voted for the Democratic party's Governor in both the 2019 and the 2023 elections, it would have a post-COVID gubernatorial turnover score of 0. To check my analysis, I will also be investigating pre-COVID gubernatorial election results and correlations to determine trends in turnover scores and whether COVID-19 marks a shift in these trends. 
 
-Have U.S. counties with high COVID-19 infection and mortality rates experienced increased turnover among their local government officials through elections? Through my final project, I aim to examine the extent to which COVID-19 has influenced local American politics. To accomplish this, I will investigate whether counties with high COVID-19 infection and mortality rates have voted out their incumbent local and state-level government officials (mayors and governors) at higher rates. I hypothesize that these counties have voted out their officials at higher rates due to citizens' association of higher infection and mortality rates with government mismanagement. An alternative hypothesis would be that COVID-19 has indirectly influenced elections due to its heterogeneous impact on certain communities and related excess death rates. My sample is comprised of mayoral and gubernatorial election results from 2009 to 2023. My unit of analysis is a Mayoral Seat (R-D-O) and a Gubernatorial Seat (R-D-O). My explanatory variable of interest is party affiliated vote. The variable is coded =R if the Republican party's Mayoral or Gubernatorial candidate receives more than 50% of the vote, coded =D if the Democratic party's Mayoral or Gubernatorial candidate receives more than 50% of the vote, and coded =O if an other party's Mayoral or Gubernatorial candidate receives more than 50% of the vote. My outcome variable of interest is the post-COVID turnover score, which would be calculated as the change in the party affiliation of the Mayoral and Gubernatorial Seats after March 2020 (the month in which COVID-19 was declared a pandemic by the World Health Organization.) For instance, if county X has an incumbent mayor from the Republican party that was elected in 2019 but votes in a new mayor from the Democratic party in 2023, that state would have a post-COVID mayoral turnover score of 1 (County X would have gone from R to D). If County X voted for the Democratic party's Governor in both the 2019 and the 2023 elections, it would have a post-COVID gubernatorial turnover score of 0. An aggregate turnover score of 2, therefore, indicates a high local political turnover rate for a county, whereas an aggregate turnover score of 0 indicates a low local political turnover rate. If I observe that a majority of counties have a medium-to-high post-COVID aggregate local political turnover rate I would have support for both my hypotheses, where I would have to do additional research into demographic data to decide which hypothesis would be accurate. If, on the other hand, I observe that a majority of counties have a low-to-medium aggregate post-COVID local political turnover rate, this would prove as evidence against my hypotheses. 
+My study is an observational study that takes into account data collected of the treatment group, U.S. counties, before and after treatment, the COVID-19 pandemic. 
 
+Sources of Data:
+1. Algara, Carlos; Sharif Amlani, 2021, "Replication Data for: Partisanship & Nationalization in American Elections: Evidence from Presidential, Senatorial, & Gubernatorial Elections in the U.S. Counties, 1872-2020", https://doi.org/10.7910/DVN/DGUMFI, Harvard Dataverse, V1, UNF:6:glfQoiLzpXDGTfErebfBIQ== [fileUNF]
+2. The Johns Hopkins Coronavirus Resource Center, https://github.com/CSSEGISandData/COVID-19/tree/master.
+3. Leip, Dave, 2018, "Dave Leip Governor General County Election Data", https://doi.org/10.7910/DVN/LTFVBG, Harvard Dataverse, V5, UNF:6:1PpEpKvgbus5w+FYJBCZTw== [fileUNF]
+4. U.S. Census Bureau, Population Division, 2023, "Annual Resident Population Estimates, Estimated Components of Resident Population Change, and Rates of the Components of Resident Population Change for States and Counties: April 1, 2020 to July 1, 2022" 
 
+## Forming the Data Frame (1/2): Isolating the Gubernatorial Elections and Determining Variables of Interest
 
+```{r}
+## Load in packages needed for data wrangling
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
 
+## Load in data 
+gub_elections <- read.csv("data/gov_elections_release.csv")
+postcov_gub_elections_1 <- read.csv("data/County_Governor_Election_Data_2020_5_0_2.csv")
+postcov_gub_elections_1 <- postcov_gub_elections_1[-c(1), ] ## First row included string descriptions of columns
+postcov_gub_elections_2 <- read.csv("data/County_Governor_Election_Data_2022_5_0_2.csv")
+postcov_gub_elections_2 <- postcov_gub_elections_2[-c(1), ] ## First row included string descriptions of columns
 
+## Manipulate the data frame to only include variables of interest
+gub_elections <- gub_elections |>
+  filter(election_year > 2000 & election_year != 2020) |>
+  select(-c(office, election_type, county_first_date, county_end_date, state_admission_date, original_county_name, original_name_end_date))
 
+## Check to see if the data frame works
+head(gub_elections) |>
+  knitr::kable()
+```
 
+## Creating County Level and State Level Returns
 
+```{r}
+## County level returns
+county_level_returns <- gub_elections |>
+  mutate(election_result = if_else(democratic_raw_votes > republican_raw_votes, "County voted for Democratic Governor", "County voted for Republican Governor"))
+
+## Check to see if county_level_returns is functional
+
+head(county_level_returns) |>
+  knitr::kable()
+```
+
+## Forming the Data Frame (2/2): Adding in Covid-19 Data (Confirmed Cases and Deaths) to the Data Frame
+
+```{r}
+## Forming two sub data frames, which will be combined later on
+
+## Sub Data Frame 1: Confirmed Cases on the County Level
+covid_c <- read.csv("data/time_series_covid19_confirmed_US.csv")
+
+## Checking Data Frame 1
+head(covid_c) |>
+  knitr::kable()
+  
+## Sub Data Frame 2: Deaths on the County Level
+covid_d <- read.csv("data/time_series_covid19_deaths_US.csv")
+
+## Checking Data Frame 2
+head(covid_d) |>
+  knitr::kable()
+```
+Both covid_c and covid_d are very wide data frames that include daily statistics. As we only have two election years of interest (2020 and 2022), we could limit the scope of the data and focus on two particular dates:
+
+November 3, 2020 - gubernatorial elections took place in the following 11 states:
+
+```{r}
+library(usmap)
+
+twentytwenty_gub <- c("DE", "IN", "MO", "MT", "NH", "NC", "ND", "UT", "VT", "WA", "WV")
+
+plot_usmap(regions = "states", labels = TRUE, color = "black", include = twentytwenty_gub) +
+  theme(legend.position = "right") +
+  labs(title = "States That Had Gubernatorial Elections on November 3, 2020")
+```
+
+November 8, 2022 - gubernatorial elections took place in the following 36 states:
+
+```{r}
+twentytwentytwo_gub <- c("AL", "AK", "AZ", "AR", "CA", "C0", "CT", "FL", "GA", "HI", "ID","IL", "IA", "KS", "ME", "MD", "MA", "MI", "MN", "NE", "NV", "NH", "NM", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "VT", "WI", "WY")
+
+plot_usmap(regions = "states", labels = TRUE, color = "black", include = twentytwentytwo_gub) +
+  theme(legend.position = "right") +
+  labs(title = "States That Had Gubernatorial Elections on November 8, 2022")
+```
+With this in mind, we can select the following dates from the covid_c and covid_d data sets focusing on the abovementioned states and their counties:
+
+-> Nov 3, 2020: "DE", "IN", "MO", "MT", "NH", "NC", "ND", "UT", "VT", "WA", "WV"
+
+-> Nov 8, 2022: "AL", "AK", "AZ", "AR", "CA", "C0", "CT", "FL", "GA", "HI", "ID","IL", "IA", "KS", "ME", "MD", "MA", "MI", "MN", "NE", "NV", "NH", "NM", "NY", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "VT", "WI", "WY"
+
+```{r}
+covid_c |>
+  group_by(Combined_Key) |>
+  select(X11.3.20, X11.8.22)
+
+covid_d |>
+  group_by(Combined_Key) |>
+  select(X11.3.20, X11.8.22)
+```
+
+## Data Wrangling
+
+With these initial dataframes set up, we can now move on to creating our own variables of interest, mainly the electoral consistency score. The crux of my analysis will lay in determining whether a relationship exists between the electoral consistency score and the number of confirmed COVID-19 cases and deaths.
+
+## Devising a System to Determine Electoral Consistency Scores
+```{r}
+## Pre-Covid Electoral Consistency Scores
+
+consistency_pre_covid <- county_level_returns |>
+  mutate(diff = democratic_raw_votes - republican_raw_votes,
+         perc_diff = (diff/raw_county_vote_totals)*100)  |>
+  group_by(fips) |>
+  mutate(n_election = row_number()) |>
+  select(n_election, fips, diff, perc_diff) |>
+  summarise(mean_diff_pre_c = mean(perc_diff, na.rm = TRUE))
+  
+## Post-Covid Electoral Consistency Scores
+
+## First, have to manipulate data to fit binary operators
+postcov_gub_elections_1$Democratic <- as.numeric(postcov_gub_elections_1$Democratic)
+postcov_gub_elections_1$Republican <- as.numeric(postcov_gub_elections_1$Republican)
+postcov_gub_elections_1$Total.Vote <- as.numeric(postcov_gub_elections_1$Total.Vote)
+
+postcov_gub_elections_2$Democratic <- as.numeric(postcov_gub_elections_2$Democratic)
+postcov_gub_elections_2$Republican <- as.numeric(postcov_gub_elections_2$Republican)
+postcov_gub_elections_2$Total.Vote <- as.numeric(postcov_gub_elections_2$Total.Vote)
+
+## consistency_post_covid_1 will include 2020 data
+consistency_post_covid_1 <- postcov_gub_elections_1 |>
+  mutate(diff = Democratic - Republican,
+         perc_diff = (diff/Total.Vote)*100)  |>
+  group_by(FIPS) |>
+  mutate(n_election = row_number()) |>
+  select(n_election, FIPS, diff, perc_diff) |>
+  summarize(mean_diff_post_c = mean(perc_diff, na.rm = TRUE))
+
+## consistency_post_covid_2 will include 2022 data
+consistency_post_covid_2 <- postcov_gub_elections_2 |>
+  mutate(diff = Democratic - Republican,
+         perc_diff = (diff/Total.Vote)*100)  |>
+  group_by(FIPS) |>
+  mutate(n_election = row_number()) |>
+  select(n_election, FIPS, diff, perc_diff) |>
+  summarize(mean_diff_post_c = mean(perc_diff, na.rm = TRUE))
+```
+
+Now the data frames are ready for our observational analysis. We can merge them to visualize the average treatment effect, "Before" and "After" the pandemic. 
+
+```{r}
+## Merging pre-covid and post-covid data frames for the 2020 elections
+electoral_consistency_2020 <- consistency_pre_covid |>
+  rename(FIPS = fips) |>
+  mutate(FIPS = as.character(FIPS)) |>  
+  left_join(consistency_post_covid_1, by = "FIPS")
+
+## Merging pre-covid and post-covid data frames for the 2022 elections
+electoral_consistency_2022 <- consistency_pre_covid |>
+  rename(FIPS = fips) |>
+  mutate(FIPS = as.character(FIPS)) |>  
+  left_join(consistency_post_covid_2, by = "FIPS")
+
+## As there are many rows without values, we can omit them and focus on the counties for which we have the electoral data for
+electoral_consistency_2020 <- na.omit(electoral_consistency_2020)
+electoral_consistency_2022 <- na.omit(electoral_consistency_2022)
+
+## Now we can determine the treatment effect
+electoral_consistency_ate_2020 <- electoral_consistency_2020 |>
+  mutate(ATE = abs(mean_diff_post_c - mean_diff_pre_c)) ## We are taking absolute values as we are focusing on the magnitude of the percentage points
+
+electoral_consistency_ate_2022 <- electoral_consistency_2022 |>
+  mutate(ATE = abs(mean_diff_post_c - mean_diff_pre_c)) ## We are taking absolute values as we are focusing on the magnitude of the percentage points
+
+head(electoral_consistency_ate_2020) |>
+  knitr::kable()
+
+head(electoral_consistency_ate_2022) |>
+  knitr::kable()
+```
+
+As we finally have our ATE values, we can now shift our focus to finding a relationship between the treatment effect and the pandemic
+
+```{r}
+## Forming data frames that depict COVID-19 cases and deaths caused by COVID-19 isolated on dates of interest
+covid_c_2020 <- covid_c |>
+ 	select(FIPS, X11.3.20) |>
+	rename(n_conf_cases_20 = X11.3.20) |>
+  mutate(FIPS = as.character(FIPS)) |> 
+	mutate(n_conf_cases_20 = as.numeric(n_conf_cases_20))
+
+covid_c_2022 <- covid_c |>
+	select(FIPS, X11.8.22) |>
+	rename(n_conf_cases_22 = X11.8.22) |>
+  mutate(FIPS = as.character(FIPS)) |> 
+	mutate(n_conf_cases_22 = as.numeric(n_conf_cases_22))
+
+covid_d_2020 <- covid_d |>
+	select(FIPS, X11.3.20) |>
+	rename(n_conf_deaths_20 = X11.3.20) |>
+  mutate(FIPS = as.character(FIPS)) |> 
+	mutate(n_conf_deaths_20 = as.numeric(n_conf_deaths_20))
+
+covid_d_2022 <- covid_d |>
+	select(FIPS, X11.8.22) |>
+	rename(n_conf_deaths_22 = X11.8.22) |>
+  mutate(FIPS = as.character(FIPS)) |> 
+	mutate(n_conf_deaths_22 = as.numeric(n_conf_deaths_22))
+```
+
+```{r}
+## Merging the 2020 elections data frame with the 2020 COVID-19 data frame
+electoral_consistency_ate_2020_1 <- electoral_consistency_ate_2020 |>
+  left_join(covid_c_2020, by = "FIPS")
+
+electoral_consistency_2020_final <- electoral_consistency_ate_2020_1 |>
+  left_join(covid_d_2020, by = "FIPS")
+```
+```{r}
+## Merging the 2022 elections' data frame with the 2022 COVID-19 data frame
+electoral_consistency_ate_2022_1 <- electoral_consistency_ate_2022 |>
+  left_join(covid_c_2022, by = "FIPS")
+
+electoral_consistency_2022_final <- electoral_consistency_ate_2022_1 |>
+  left_join(covid_d_2022, by = "FIPS")
+
+electoral_consistency_2022_final
+```
+
+Now, we can see what are results look like through data visualizations:
+
+```{r}
+## Visualizing the relationship between the change in electoral consistency scores and the number of confirmed cases for the 2020 gubernatorial election cycle
+ggplot(electoral_consistency_2020_final, aes(x = n_conf_cases_20, y = ATE)) +
+  geom_point(color = "steelblue1", alpha = 0.25) +
+  labs(
+    x = "Number of Confirmed Cases",
+    y = "Change in Electoral Consistency Score (Pre-Covid vs. Post-Covid Elections",
+    title = "Change in Electoral Consistency Score vs. Number of Confirmed Cases (2020)"
+  ) +
+   geom_smooth(method = "lm", se = FALSE) +
+  scale_x_log10()
+```
+
+```{r}
+## Visualizing the relationship between the change in electoral consistency scores and the number of confirmed deaths for the 2020 gubernatorial election cycle
+ggplot(electoral_consistency_2020_final, aes(x = n_conf_deaths_20, y = ATE)) +
+  geom_point(color = "indianred", alpha = 0.25) +
+  labs(
+    x = "Number of Confirmed Deaths",
+    y = "Change in Electoral Consistency Score (Pre-Covid vs. Post-Covid Elections",
+    title = "Change in Electoral Consistency Score vs. Number of Confirmed Deaths (2020)"
+  ) +
+   geom_smooth(method = "lm", se = FALSE) +
+  scale_x_log10()
+```
+
+```{r}
+## Visualizing the relationship between the change in electoral consistency scores and the number of confirmed cases for the 2022 gubernatorial election cycle
+ggplot(electoral_consistency_2022_final, aes(x = n_conf_cases_22, y = ATE)) +
+  geom_point(color = "steelblue1", alpha = 0.25) +
+  labs(
+    x = "Number of Confirmed Cases",
+    y = "Change in Electoral Consistency Score (Pre-Covid vs. Post-Covid Elections",
+    title = "Change in Electoral Consistency Score vs. Number of Confirmed Cases (2022)"
+  ) +
+   geom_smooth(method = "lm", se = FALSE) +
+  scale_x_log10()
+```
+```{r}
+## Visualizing the relationship between the change in electoral consistency scores and the number of confirmed deaths for the 2022 gubernatorial election cycle
+ggplot(electoral_consistency_2022_final, aes(x = n_conf_deaths_22, y = ATE)) +
+  geom_point(color = "indianred", alpha = 0.25) +
+  labs(
+    x = "Number of Confirmed Deaths",
+    y = "Change in Electoral Consistency Score (Pre-Covid vs. Post-Covid Elections",
+    title = "Change in Electoral Consistency Score vs. Number of Confirmed Deaths (2022)"
+  ) +
+   geom_smooth(method = "lm", se = FALSE) +
+  scale_x_log10()
+```
+
+# Results Section
+
+With these data visualizations, we can now craft linear and multiple regression models to examine our results in even greater depth. 
+
+```{r}
+## Regression Models for the 2020 elections
+
+## Linear Regression model between ATE and confirmed cases in 2020
+lm.fit.2020.c.c <- lm(ATE ~ n_conf_cases_20, data = electoral_consistency_2020_final)
+
+## Linear Regression model between ATE and confirmed deaths in 2020
+lm.fit.2020.c.d <- lm(ATE ~ n_conf_deaths_20, data = electoral_consistency_2020_final)
+
+## Multiple Regression model between ATE confirmed cases and confirmed deaths in 2020
+mult.fit.2020 <- lm(ATE ~ n_conf_cases_20 + n_conf_deaths_20, data = electoral_consistency_2020_final)
+
+## Regression Models for the 2022 elections
+
+## Linear Regression model between ATE and confirmed cases in 2022
+lm.fit.2022.c.c <- lm(ATE ~ n_conf_cases_22, data = electoral_consistency_2022_final)
+
+## Linear Regression model between ATE and confirmed deaths in 2020
+lm.fit.2022.c.d <- lm(ATE ~ n_conf_deaths_22, data = electoral_consistency_2022_final)
+
+## Multiple Regression model between ATE confirmed cases and confirmed deaths in 2020
+mult.fit.2022 <- lm(ATE ~ n_conf_cases_22 + n_conf_deaths_22, data = electoral_consistency_2022_final)
+
+## Model Summary for the 2020 models
+
+modelsummary::modelsummary(list(lm.fit.2020.c.c, lm.fit.2020.c.d, mult.fit.2020))
+
+## Model Summary for the 2022 models
+
+modelsummary::modelsummary(list(lm.fit.2022.c.c, lm.fit.2022.c.d, mult.fit.2022))
+```
+
+## Interpretations
+
+Starting off from the 2020 models, we see that the intercepts for all three models is similar, around 29 percentage points. The intercept value of these models tells us what our best guess about the percentage point change in Average Treatment Effect (electoral consistency scores before and after the treatment effect, or the pandemic) would be if COVID-19 cases and deaths were to be 0. Continuing on to the coefficients, we see that `n_conf_cases_20` has a coefficient of -0.001 in model 1, `n_conf_deaths_20` has a coefficient of -0.055 in model 2, and the two variables have coefficients of -0.001 and -0.017, respectively, in model 3. Evaluatively, these coefficients mean the following: the coefficient of `n_conf_cases_20` represents that the change in ATE will be −0.001 for an additional numeric increase in the number of confirmed cases; conversely, the coefficient of `n_conf_deaths_20` represents that the change in ATE will be −0.055 for an additional numeric increase in the number of confirmed cases. In the multivariable regression model, these coefficients hold these meanings, yet require that the other variable be kept constant as the increase occurs (i.e. the coefficient of `n_conf_cases_20` represents that the change in ATE will be −0.001 for an additional numeric increase in the number of confirmed cases, holding `n_conf_deaths_20` constant.) Moreover, it is important to consider the standard errors provided within the parantheses below these coefficients. All of these values are at similarly low levels, indicating statistical certainty that these effects maintain integrity. Yet, they point toward the very curious conclusion that, even though minute, COVID-19 related cases and deaths actually have a negative relationship with ATE, meaning that as cases and deaths increase, changes between pre-covid and post-covid electoral consistency scores decrease. 
+
+The 2022 models point toward similar conclusions. The intercepts of these models tells us what our best guess about the percentage point change in ATE would be if COVID-19 cases and deaths were to equal 0 in the 2022 gubernatorial election cycle. Regarding their coefficients, we see that `n_conf_cases_22` has a coefficient of 0.000 in model 1, `n_conf_deaths_22` has a coefficient of -0.001 in model 2, and the two variables have coefficients of 0.000 and 0.000, respectively, in model 3. Each coefficient has a standard error very close to 0, meaning that they portray statistically significant results.
+
+While difficult to evaluate on their own, the 2022 results, when considered alongside those of the 2020 models, gain and signal new meaning. Namely, we see that the small effect COVID-19 had on the 2020 gubernatorial election cycle has almost fully dissipated in the 2022 cycle. This may reflect the decrease in the perceived threat of the COVID-19 pandemic between the two election cycles. Another significant conclusion from this study is that the effects hint toward a small, negative relationship between the impact of COVID-19 and ATE. This may be due to the shifts in voter behavior and attitudes that are beyond the scope of this study, implying areas more affected by the pandemic in the years of 2020 and 2022 have seen reductions in electoral volatility. This intriguing and unpredictable finding opens up novel channels for research that would be essential to determine whether the effect in question is rooted in causality. 
+
+# Conclusion
+
+Through this study, we have determined that there is a very small negative relationship between the change in pre-covid and post-covid electoral consistency scores and the impact of COVID-19, measured in both the number of confirmed cases and the number of deaths. While this effect is shown to be faint in the 2020 gubernatorial election cycle, it is almost nonexistent in the 2022 election cycle. Overall, this prevents us from rejecting our null-hypothesis, meaning that it is quite possible that COVID-19 had no discernible effect on electoral consistency regarding gubernatorial elections at the county level. However, this in itself, reflects important implications for American politics, specifically the fact that an event as significant as COVID-19 has not influenced political outcomes at the local level. 
+
+Some limitations of this study have been the fact that there was no publicly accessible data for the 2021 gubernatorial election cycle, which saw races for the governor's seat in Virginia and New Jersey (and an additional recall election in California.) Conducting the same analysis for these elections might have found a bridge between the small effect investigated in the 2020 races and dissipated effect in 2022. Another limitation may be that certain confounding variables, such as economic and demographic changes, may have accounted for unforseen effects in the study. To combat these limitations, the study could be conducted at a wider scope, with additional data frames and statistical explorations. 
+
+With access to more resources, I would expand the scope of the project to include not only gubernatorial races, but also house, senate, and presidential races. Yet, staying within the boundaries of the current study, I would devise my own data frame with figures pertaining to the 2021 election cycle to see the extent to which the effects examined in 2020 have remained. It is also important to note that compared to the pre-covid year range of 19 (from 2000 to 2019), the post-covid range is relatively miniscule (2020 and 2022), which might have also caused statistical shortcomings. I would hope to return to this study with more expertise and data in the future, as I believe it holds important implications for the politics of yesterday, today, and tomorrow. 
